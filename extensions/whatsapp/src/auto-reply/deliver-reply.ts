@@ -61,11 +61,15 @@ export async function deliverWebReply(params: {
   let quoteConsumed = false;
   const getQuote = () => {
     if (quoteConsumed || !replyResult.replyToId) return undefined;
+    // Use replyToId (not msg.id) so collected-batch payloads quote
+    // the correct per-message target instead of always quoting the
+    // last inbound message.
     return buildQuotedMessageOptions({
-      messageId: msg.id,
+      messageId: replyResult.replyToId,
       remoteJid: msg.chatId,
       fromMe: false,
       participant: msg.chatType === "group" ? msg.senderJid : undefined,
+      messageText: msg.body,
     });
   };
   const consumeQuote = () => {

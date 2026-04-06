@@ -12,6 +12,8 @@ export function buildQuotedMessageOptions(params: {
   remoteJid?: string | null;
   fromMe?: boolean;
   participant?: string;
+  /** Original message text — shown in the quote preview bubble. */
+  messageText?: string;
 }): MiscMessageGenerationOptions | undefined {
   const id = params.messageId?.trim();
   const remoteJid = params.remoteJid?.trim();
@@ -26,7 +28,7 @@ export function buildQuotedMessageOptions(params: {
         fromMe: params.fromMe ?? false,
         participant: params.participant,
       },
-      message: { conversation: "" },
+      message: { conversation: params.messageText || "" },
     },
   } as MiscMessageGenerationOptions;
 }
