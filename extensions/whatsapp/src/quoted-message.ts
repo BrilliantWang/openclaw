@@ -7,6 +7,37 @@ export type QuotedMessageKey = {
   participant?: string;
 };
 
+// ── Inbound message metadata cache ──────────────────────────────────────
+// Maps messageId → { participant, body } so the outbound adapter can
+// populate the quote key with the sender JID and preview text even though
+// the outbound path only receives a bare messageId string.
+
+type QuotedMeta = { participant?: string; body?: string };
+type CacheEntry = QuotedMeta & { ts: number };
+
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const MAX_ENTRIES = 500;
+const cache = new Map<string, CacheEntry>();
+
+export function cacheInboundMessageMeta(messageId: string, meta: QuotedMeta): void {
+  if (!messageId) return;
+  if (cache.size >= MAX_ENTRIES) {
+    const oldest = cache.keys().next().value;
+    if (oldest) cache.delete(oldest);
+  }
+  cache.set(messageId, { ...meta, ts: Date.now() });
+}
+
+export function lookupInboundMessageMeta(messageId: string): QuotedMeta | undefined {
+  const entry = cache.get(messageId);
+  if (!entry) return undefined;
+  if (Date.now() - entry.ts > CACHE_TTL_MS) {
+    cache.delete(messageId);
+    return undefined;
+  }
+  return { participant: entry.participant, body: entry.body };
+}
+
 export function buildQuotedMessageOptions(params: {
   messageId?: string | null;
   remoteJid?: string | null;

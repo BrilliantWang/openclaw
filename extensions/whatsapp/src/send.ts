@@ -43,7 +43,13 @@ export async function sendMessageWhatsApp(
     mediaReadFile?: (filePath: string) => Promise<Buffer>;
     gifPlayback?: boolean;
     accountId?: string;
-    quotedMessageKey?: { id: string; remoteJid: string; fromMe: boolean; participant?: string };
+    quotedMessageKey?: {
+      id: string;
+      remoteJid: string;
+      fromMe: boolean;
+      participant?: string;
+      messageText?: string;
+    };
   },
 ): Promise<{ messageId: string; toJid: string }> {
   let text = body.trimStart();
@@ -149,7 +155,13 @@ export async function sendReactionWhatsApp(
     fromMe?: boolean;
     participant?: string;
     accountId?: string;
-    quotedMessageKey?: { id: string; remoteJid: string; fromMe: boolean; participant?: string };
+    quotedMessageKey?: {
+      id: string;
+      remoteJid: string;
+      fromMe: boolean;
+      participant?: string;
+      messageText?: string;
+    };
   },
 ): Promise<void> {
   const correlationId = generateSecureUuid();

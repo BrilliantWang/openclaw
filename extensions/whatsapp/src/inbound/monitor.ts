@@ -11,6 +11,7 @@ import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
 import { getChildLogger } from "openclaw/plugin-sdk/text-runtime";
 import { readWebSelfIdentity } from "../auth-store.js";
 import { getPrimaryIdentityId, resolveComparableIdentity } from "../identity.js";
+import { cacheInboundMessageMeta } from "../quoted-message.js";
 import { createWaSocket, getStatusCode, waitForWaConnection } from "../session.js";
 import { resolveJidToE164 } from "../text-runtime.js";
 import { checkInboundAccessControl } from "./access-control.js";
@@ -469,6 +470,12 @@ export async function monitorWebInbox(options: {
       mediaType: enriched.mediaType,
       mediaFileName: enriched.mediaFileName,
     };
+    if (inboundMessage.id) {
+      cacheInboundMessageMeta(inboundMessage.id, {
+        participant: inboundMessage.senderJid,
+        body: inboundMessage.body,
+      });
+    }
     try {
       const task = Promise.resolve(debouncer.enqueue(inboundMessage));
       void task.catch((err) => {

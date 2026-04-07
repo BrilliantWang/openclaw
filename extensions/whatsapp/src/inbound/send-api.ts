@@ -80,6 +80,7 @@ export function createWebSendApi(params: {
         remoteJid: sendOptions?.quotedMessageKey?.remoteJid,
         fromMe: sendOptions?.quotedMessageKey?.fromMe,
         participant: sendOptions?.quotedMessageKey?.participant,
+        messageText: sendOptions?.quotedMessageKey?.messageText,
       });
       console.log("[auto-trace] send-api: quotedOpts:", quotedOpts ? "YES" : "NO");
       const result = quotedOpts

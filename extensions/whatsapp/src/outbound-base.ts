@@ -5,6 +5,7 @@ import {
 import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
 import { resolveOutboundSendDep, sanitizeForPlainText } from "openclaw/plugin-sdk/infra-runtime";
 import { WHATSAPP_LEGACY_OUTBOUND_SEND_DEP_KEYS } from "./outbound-send-deps.js";
+import { lookupInboundMessageMeta } from "./quoted-message.js";
 import { toWhatsappJid } from "./text-runtime.js";
 
 type WhatsAppChunker = NonNullable<ChannelOutboundAdapter["chunker"]>;
@@ -20,7 +21,13 @@ type WhatsAppSendTextOptions = {
   mediaReadFile?: (filePath: string) => Promise<Buffer>;
   gifPlayback?: boolean;
   accountId?: string;
-  quotedMessageKey?: { id: string; remoteJid: string; fromMe: boolean; participant?: string };
+  quotedMessageKey?: {
+    id: string;
+    remoteJid: string;
+    fromMe: boolean;
+    participant?: string;
+    messageText?: string;
+  };
 };
 type WhatsAppSendMessage = (
   to: string,
@@ -83,8 +90,15 @@ export function createWhatsAppOutboundBase({
           resolveOutboundSendDep<WhatsAppSendMessage>(deps, "whatsapp", {
             legacyKeys: WHATSAPP_LEGACY_OUTBOUND_SEND_DEP_KEYS,
           }) ?? sendMessageWhatsApp;
+        const cachedMeta = replyToId ? lookupInboundMessageMeta(replyToId) : undefined;
         const quotedMessageKey = replyToId
-          ? { id: replyToId, remoteJid: toWhatsappJid(to), fromMe: false }
+          ? {
+              id: replyToId,
+              remoteJid: toWhatsappJid(to),
+              fromMe: false,
+              participant: cachedMeta?.participant,
+              messageText: cachedMeta?.body,
+            }
           : undefined;
         console.log(
           "[auto-trace] outbound sendText: replyToId:",
