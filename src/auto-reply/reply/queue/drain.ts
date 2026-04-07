@@ -123,16 +123,37 @@ export function scheduleFollowupDrain(
 
           const routing = resolveOriginRoutingMetadata(items);
 
+          // When multiple messages are collected, frame the prompt as a
+          // mandatory structured output so the model produces per-message
+          // [[reply_to:<id>]] tags that the delivery layer splits on.
+          const hasMultipleItems = items.length > 1;
           const prompt = buildCollectPrompt({
-            title: "[Queued messages while agent was busy]",
+            title: hasMultipleItems
+              ? [
+                  `[${items.length} queued messages — you MUST reply to each separately]`,
+                  `FORMAT: For each answer, write [[reply_to:<message_id>]] on its own line, then your answer. Do NOT combine answers into one block.`,
+                ].join("\n")
+              : "[Queued messages while agent was busy]",
             items,
             summary,
-            renderItem: (item, idx) => `---\nQueued #${idx + 1}\n${item.prompt}`.trim(),
+            renderItem: (item, idx) => {
+              const sender = item.run.senderName || item.run.senderId || "";
+              const senderLabel = sender ? ` from ${sender}` : "";
+              if (hasMultipleItems && item.messageId) {
+                return `---\nMessage ${item.messageId}${senderLabel}:\n${item.prompt}`.trim();
+              }
+              return `---\nQueued #${idx + 1}\n${item.prompt}`.trim();
+            },
           });
+          const collectedMessageIds = items
+            .map((item) => item.messageId)
+            .filter((id): id is string => Boolean(id));
           await effectiveRunFollowup({
             prompt,
             run,
             enqueuedAt: Date.now(),
+            messageId: items.at(-1)?.messageId,
+            collectedMessageIds: collectedMessageIds.length > 1 ? collectedMessageIds : undefined,
             ...routing,
           });
           queue.items.splice(0, items.length);
@@ -154,6 +175,7 @@ export function scheduleFollowupDrain(
                 prompt: summaryPrompt,
                 run,
                 enqueuedAt: Date.now(),
+                messageId: item.messageId,
                 originatingChannel: item.originatingChannel,
                 originatingTo: item.originatingTo,
                 originatingAccountId: item.originatingAccountId,
