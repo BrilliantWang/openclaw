@@ -185,6 +185,7 @@ export function scheduleFollowupDrain(
                 originatingTo: item.originatingTo,
                 originatingAccountId: item.originatingAccountId,
                 originatingThreadId: item.originatingThreadId,
+                originatingChatType: item.originatingChatType,
               });
             }))
           ) {
