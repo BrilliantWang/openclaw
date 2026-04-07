@@ -44,7 +44,11 @@ export function kickFollowupDrainIfIdle(key: string): void {
 
 type OriginRoutingMetadata = Pick<
   FollowupRun,
-  "originatingChannel" | "originatingTo" | "originatingAccountId" | "originatingThreadId"
+  | "originatingChannel"
+  | "originatingTo"
+  | "originatingAccountId"
+  | "originatingThreadId"
+  | "originatingChatType"
 >;
 
 function resolveOriginRoutingMetadata(items: FollowupRun[]): OriginRoutingMetadata {
@@ -56,6 +60,7 @@ function resolveOriginRoutingMetadata(items: FollowupRun[]): OriginRoutingMetada
     originatingThreadId: items.find(
       (item) => item.originatingThreadId != null && item.originatingThreadId !== "",
     )?.originatingThreadId,
+    originatingChatType: items.find((item) => item.originatingChatType)?.originatingChatType,
   };
 }
 

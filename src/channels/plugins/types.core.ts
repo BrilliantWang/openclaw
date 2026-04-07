@@ -541,6 +541,7 @@ export type ChannelMessagingAdapter = {
     cfg: OpenClawConfig;
     agentId: string;
     accountId?: string | null;
+    currentSessionKey?: string;
     target: string;
     resolvedTarget?: {
       to: string;

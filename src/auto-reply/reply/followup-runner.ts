@@ -381,7 +381,6 @@ export function createFollowupRunner(params: {
       const hasCollectedMapping =
         rawReplyToMode === "auto" &&
         collectedIds &&
-        collectedIds.length > 1 &&
         multiTagPayloads.length === collectedIds.length;
       const collectedPayloads = hasCollectedMapping
         ? multiTagPayloads.map((p, i) =>
